@@ -15,7 +15,7 @@
     </properties>
 
     <build>
-        <sourceDirectory>src/me/flaming</sourceDirectory>
+        <sourceDirectory>src</sourceDirectory>
     </build>
 
     <repositories>
