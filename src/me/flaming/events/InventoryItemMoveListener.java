@@ -12,12 +12,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.configuration.file.FileConfiguration;
 
+import me.flaming.PluginMain;
 
 public class InventoryItemMoveListener implements Listener {
+	FileConfiguration config = PluginMain.getPlugin().getConfig();
 
-	boolean Debug = true;
-	boolean MoreDebug = true;
+//	boolean Debug = true;
+//	boolean MoreDebug = true;
 
 	private int getInvFreeAmount(Inventory inv, ItemStack itemstack) {
 		final int[] FreeSpace = {0};
@@ -29,6 +32,7 @@ public class InventoryItemMoveListener implements Listener {
 
 		return FreeSpace[0];
 	}
+
 	private Block getBlockAt(Block block, String dir) {
 		int x = block.getX();
 		int y = block.getY();
@@ -63,7 +67,7 @@ public class InventoryItemMoveListener implements Listener {
 				// First check in the side directions
 				int space = getInvFreeAmount(((BlockInventoryHolder) target.getState()).getInventory(), itemstack);
 
-				if (MoreDebug) Bukkit.broadcastMessage("Hopper Location: " + block.getX() + "," + block.getY() + "," + block.getZ() + "\nfacing: " + dir + "\ncan hold: " + space + " " + itemstack.getType());
+				if (config.getBoolean("MoreDebug")) Bukkit.broadcastMessage("Hopper Location: " + block.getX() + "," + block.getY() + "," + block.getZ() + "\nfacing: " + dir + "\ncan hold: " + space + " " + itemstack.getType());
 
 				// Second check in the hopper below
 				if (space == 0) dir = "DOWN";
@@ -94,7 +98,7 @@ public class InventoryItemMoveListener implements Listener {
 			// If no target block, it returns the previous source block itself
 			if (targetPlaceholder == null) targetBlock = prevBlock;
 
-			// Else, goes to next iteration
+				// Else, goes to next iteration
 			else prevBlock = targetPlaceholder;
 		}
 
@@ -110,8 +114,8 @@ public class InventoryItemMoveListener implements Listener {
 		// Issue: adds only 1 of the item in the inventory
 		((BlockInventoryHolder) targetBlock.getState()).getInventory().addItem(movingItem);
 
-		if (Debug) Bukkit.broadcastMessage("Added " + e.getItem().getAmount() + " " + e.getItem().getType() + " to target hopper");
-		if (Debug) Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
-		if (Debug) Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
+		if (config.getBoolean("Debug")) Bukkit.broadcastMessage("Added " + e.getItem().getAmount() + " " + e.getItem().getType() + " to target hopper");
+		if (config.getBoolean("Debug")) Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
+		if (config.getBoolean("Debug")) Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
 	}
 }
