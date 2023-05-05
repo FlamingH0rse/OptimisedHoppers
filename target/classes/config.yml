@@ -1,5 +1,0 @@
-# Set if you want debug to be printed out in chat
-Debug: true
-
-# Set if you want additional debug to be printed out in chat
-MoreDebug: true
