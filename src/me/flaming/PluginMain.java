@@ -1,6 +1,7 @@
 package me.flaming;
 
 import me.flaming.events.InventoryItemMoveListener;
+import me.flaming.commands.PluginCommands;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class PluginMain extends JavaPlugin {
@@ -12,6 +13,7 @@ public class PluginMain extends JavaPlugin {
 		plugin = this;
 		getLogger().info("OptimisedHoppers is enabled!");
 		getServer().getPluginManager().registerEvents(new InventoryItemMoveListener(), this);
+		getCommand("optimisedhopper").setExecutor(new PluginCommands());
 	}
 
 	@Override
@@ -22,4 +24,11 @@ public class PluginMain extends JavaPlugin {
 	public static PluginMain getPlugin() {
 		return plugin;
 	}
+
+	public static void changeConfig(String name, String input) {
+		getPlugin().getConfig().set(name, input);
+		getPlugin().saveConfig();
+		getPlugin().reloadConfig();
+	}
+
 }

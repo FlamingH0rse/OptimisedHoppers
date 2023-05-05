@@ -14,12 +14,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.configuration.file.FileConfiguration;
 
+import me.flaming.PluginMain;
 
 public class InventoryItemMoveListener implements Listener {
-
-	boolean Debug = false;
-	boolean MoreDebug = false;
+	FileConfiguration config = PluginMain.getPlugin().getConfig();
 
 	private int getInvFreeAmount(Inventory inv, ItemStack itemstack) {
 		final int[] FreeSpace = {0};
@@ -105,14 +105,14 @@ public class InventoryItemMoveListener implements Listener {
 
 				// Adds item to destination inventory
 				targetInventory.addItem(movingItem);
-				if (Debug)
+				if (config.getBoolean("Debug"))
 					Bukkit.broadcastMessage("Added " + removeAmount + " " + movingItem.getType() + " to target hopper");
 			}
 		}
 
-		if (MoreDebug)
+		if (config.getBoolean("MoreDebug"))
 			Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
-		if (MoreDebug)
+		if (config.getBoolean("MoreDebug"))
 			Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
 	}
 
