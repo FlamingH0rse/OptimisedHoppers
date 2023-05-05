@@ -7,3 +7,5 @@ commands:
     description: Optimised Hoppers commands
     permission: optimisedhoppers.usecommands
     permission-message: You do not have the permission to use this command.
+    aliases:
+      - oh

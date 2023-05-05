@@ -18,8 +18,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import me.flaming.PluginMain;
 
 public class InventoryItemMoveListener implements Listener {
-	FileConfiguration config = PluginMain.getPlugin().getConfig();
-
 	private int getInvFreeAmount(Inventory inv, ItemStack itemstack) {
 		final int[] FreeSpace = {0};
 
@@ -66,6 +64,9 @@ public class InventoryItemMoveListener implements Listener {
 	}
 
 	public void executeOnTrigger(InventoryMoveItemEvent e) {
+		PluginMain.getPlugin().reloadConfig();
+		FileConfiguration config = PluginMain.getPlugin().getConfig();
+
 		Block sourceBlock = ((BlockInventoryHolder) e.getSource().getHolder()).getBlock();
 		Block targetBlock = null;
 		Block prevBlock = sourceBlock;

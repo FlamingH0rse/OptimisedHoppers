@@ -14,6 +14,7 @@ public class PluginMain extends JavaPlugin {
 		getLogger().info("OptimisedHoppers is enabled!");
 		getServer().getPluginManager().registerEvents(new InventoryItemMoveListener(), this);
 		getCommand("optimisedhoppers").setExecutor(new PluginCommands());
+		saveDefaultConfig();
 	}
 
 	@Override
@@ -25,7 +26,7 @@ public class PluginMain extends JavaPlugin {
 		return plugin;
 	}
 
-	public static void changeConfig(String name, String input) {
+	public static void changeConfig(String name, Boolean input) {
 		getPlugin().getConfig().set(name, input);
 		getPlugin().saveConfig();
 		getPlugin().reloadConfig();
