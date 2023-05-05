@@ -1,6 +1,5 @@
 package me.flaming.events;
 
-import me.flaming.PluginMain;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;

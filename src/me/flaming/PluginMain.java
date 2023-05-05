@@ -13,7 +13,7 @@ public class PluginMain extends JavaPlugin {
 		plugin = this;
 		getLogger().info("OptimisedHoppers is enabled!");
 		getServer().getPluginManager().registerEvents(new InventoryItemMoveListener(), this);
-		getCommand("optimisedhopper").setExecutor(new PluginCommands());
+		getCommand("optimisedhoppers").setExecutor(new PluginCommands());
 	}
 
 	@Override
