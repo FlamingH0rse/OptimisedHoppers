@@ -1,5 +1,6 @@
 package me.flaming.events;
 
+import me.flaming.PluginMain;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -12,12 +13,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.scheduler.BukkitRunnable;
 
 
 public class InventoryItemMoveListener implements Listener {
 
-	boolean Debug = true;
-	boolean MoreDebug = true;
+	boolean Debug = false;
+	boolean MoreDebug = false;
 
 	private int getInvFreeAmount(Inventory inv, ItemStack itemstack) {
 		final int[] FreeSpace = {0};
@@ -29,6 +31,7 @@ public class InventoryItemMoveListener implements Listener {
 
 		return FreeSpace[0];
 	}
+
 	private Block getBlockAt(Block block, String dir) {
 		int x = block.getX();
 		int y = block.getY();
@@ -53,38 +56,18 @@ public class InventoryItemMoveListener implements Listener {
 
 		Block target = getBlockAt(block, dir);
 
-		if (!dir.equals("DOWN")) {
-			if (target != null && target.getType().equals(Material.HOPPER)) {
-				/*
-				* The checks below use wrong logic,
-				* which was based on older versions of minecraft
-				* will be changed later
-				*/
-				// First check in the side directions
-				int space = getInvFreeAmount(((BlockInventoryHolder) target.getState()).getInventory(), itemstack);
-
-				if (MoreDebug) Bukkit.broadcastMessage("Hopper Location: " + block.getX() + "," + block.getY() + "," + block.getZ() + "\nfacing: " + dir + "\ncan hold: " + space + " " + itemstack.getType());
-
-				// Second check in the hopper below
-				if (space == 0) dir = "DOWN";
-				target = getBlockAt(block, dir);
-				space = getInvFreeAmount(((BlockInventoryHolder) target.getState()).getInventory(), itemstack);
-
-				// If both are full, returns null
-				if (space == 0) return null;
-			}
-		}
 		if (target == null || !target.getType().equals(Material.HOPPER)) return null;
+
+		int space = getInvFreeAmount(((BlockInventoryHolder) target.getState()).getInventory(), itemstack);
+
+		// If both are full, returns null
+		if (space == 0) return null;
+
 		return target;
 	}
 
-	@EventHandler
-	public void onInvItemMove(InventoryMoveItemEvent e) {
-		if (!e.getSource().getType().equals(InventoryType.HOPPER) && !(e.getSource().getHolder() instanceof BlockInventoryHolder))
-			return;
-		e.setCancelled(true);
+	public void executeOnTrigger(InventoryMoveItemEvent e) {
 		Block sourceBlock = ((BlockInventoryHolder) e.getSource().getHolder()).getBlock();
-
 		Block targetBlock = null;
 		Block prevBlock = sourceBlock;
 
@@ -94,24 +77,55 @@ public class InventoryItemMoveListener implements Listener {
 			// If no target block, it returns the previous source block itself
 			if (targetPlaceholder == null) targetBlock = prevBlock;
 
-			// Else, goes to next iteration
+				// Else, goes to next iteration
 			else prevBlock = targetPlaceholder;
 		}
+		// No item movement, added to prevent debug spamming
+		if (sourceBlock.equals(targetBlock)) return;
 
-		int movingItemSlot = e.getSource().first(e.getItem().getType());
-		ItemStack movingItem = e.getSource().getItem(movingItemSlot);
 
-		Bukkit.broadcastMessage(movingItem.getAmount() + "");
+		Inventory sourceInventory = e.getSource();
+		Inventory targetInventory = ((BlockInventoryHolder) targetBlock.getState()).getInventory();
 
-		// Removes item from source
-		e.getSource().removeItem(movingItem);
+		int freeSpace = getInvFreeAmount(targetInventory, e.getItem());
 
-		// Adds item to destination inventory
-		// Issue: adds only 1 of the item in the inventory
-		((BlockInventoryHolder) targetBlock.getState()).getInventory().addItem(movingItem);
+		for (ItemStack item : sourceInventory.getContents()) {
+			if (freeSpace == 0) return;
+			if (item != null && item.isSimilar(e.getItem())) {
+				int removeAmount = Math.min(item.getAmount(), freeSpace);
 
-		if (Debug) Bukkit.broadcastMessage("Added " + e.getItem().getAmount() + " " + e.getItem().getType() + " to target hopper");
-		if (Debug) Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
-		if (Debug) Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
+				freeSpace -= removeAmount;
+
+				// ItemStack to be moved to new hopper
+				ItemStack movingItem = new ItemStack(item);
+				movingItem.setAmount(removeAmount);
+
+				// Removes item from source inventory
+				item.setAmount(item.getAmount() - removeAmount);
+
+				// Adds item to destination inventory
+				targetInventory.addItem(movingItem);
+				if (Debug)
+					Bukkit.broadcastMessage("Added " + removeAmount + " " + movingItem.getType() + " to target hopper");
+			}
+		}
+
+		if (MoreDebug)
+			Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
+		if (MoreDebug)
+			Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
+	}
+
+	@EventHandler
+	public void onInvItemMove(InventoryMoveItemEvent e) {
+		if (!e.getSource().getType().equals(InventoryType.HOPPER) && !(e.getSource().getHolder() instanceof BlockInventoryHolder))
+			return;
+
+		e.setCancelled(true);
+		new BukkitRunnable() {
+			public void run() {
+				executeOnTrigger(e);
+			}
+		}.runTaskLater(PluginMain.getPlugin(), 1);
 	}
 }
