@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Hopper;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -13,10 +14,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.configuration.file.FileConfiguration;
 
 import me.flaming.PluginMain;
 
+import java.util.UUID;
 
 public class InventoryItemMoveListener implements Listener {
 	private int getInvFreeAmount(Inventory inv, ItemStack itemstack) {
@@ -68,11 +69,6 @@ public class InventoryItemMoveListener implements Listener {
 	}
 
 	public void executeOnTrigger(InventoryMoveItemEvent e) {
-		// Plugin Config
-		PluginMain.getPlugin().reloadConfig();
-		FileConfiguration config = PluginMain.getPlugin().getConfig();
-
-		// Hopper blocks
 		Block sourceBlock = ((BlockInventoryHolder) e.getSource().getHolder()).getBlock();
 		Block targetBlock = null;
 		Block prevBlock = sourceBlock;
@@ -92,7 +88,6 @@ public class InventoryItemMoveListener implements Listener {
 		// If no item movement
 		// Added to prevent debug spamming
 		if (sourceBlock.equals(targetBlock)) return;
-
 
 		Inventory sourceInventory = e.getSource();
 		Inventory targetInventory = ((BlockInventoryHolder) targetBlock.getState()).getInventory();
@@ -132,15 +127,35 @@ public class InventoryItemMoveListener implements Listener {
 
 				// Adds item to destination inventory
 				targetInventory.addItem(movingItem);
-				if (config.getBoolean("MoreDebug"))
-					Bukkit.broadcastMessage("Added " + removeAmount + " " + movingItem.getType() + " to target hopper");
+
+				String log = "Added " + removeAmount + " " + movingItem.getType() + " to target hopper";
+				// Write to log file
+				PluginMain.logToFile(log, false);
+
+				// Show Debug to players that has Debug enabled
+				for (UUID puuid : PluginMain.debugUsers) {
+					Player p = Bukkit.getPlayer(puuid);
+					if (p != null) p.sendMessage(log);
+				}
 			}
 		}
 
-		if (config.getBoolean("Debug"))
-			Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
-		if (config.getBoolean("Debug"))
-			Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
+
+		// Show MoreDebug to players that has MoreDebug enabled
+		String slog = "Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ();
+		String tlog = "Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ();
+
+		// Write to log file
+		PluginMain.logToFile(slog, true);
+		PluginMain.logToFile(tlog, true);
+
+		for (UUID puuid : PluginMain.moredebugUsers) {
+			Player p = Bukkit.getPlayer(puuid);
+			if (p != null) {
+				p.sendMessage(slog);
+				p.sendMessage(tlog);
+			}
+		}
 	}
 
 	@EventHandler
