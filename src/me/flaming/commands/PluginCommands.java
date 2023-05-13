@@ -34,7 +34,7 @@ public class PluginCommands implements TabExecutor {
                 .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Visit the repo"))).create();
 
         BaseComponent[] helpButton = new ComponentBuilder("[Click Here]\n").bold(true).color(net.md_5.bungee.api.ChatColor.GREEN)
-                .event(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/FlamingH0rse/OptimisedHoppers"))
+                .event(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/optimisedhoppers help"))
                 .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("View Help"))).create();
 
         BaseComponent[] messageComponent = new ComponentBuilder("\n")
@@ -59,8 +59,25 @@ public class PluginCommands implements TabExecutor {
         if (args.length == 0) {
             aboutMessage(p);
         } else {
-            // Place commands here that has 2 args
-            if (args.length >= 2) {
+           if (args[0].equalsIgnoreCase("help")) {
+               BaseComponent[] helpMessage = new ComponentBuilder("\n")
+                       .append("OptimisedHoppers ").color(net.md_5.bungee.api.ChatColor.AQUA).bold(true)
+                       .append("[Commands]\n\n").color(net.md_5.bungee.api.ChatColor.DARK_RED)
+                       .append("/optimisedhoppers help").underlined(true).color(net.md_5.bungee.api.ChatColor.GOLD).bold(false)
+                       .append(" - Shows this message\n").underlined(false).color(net.md_5.bungee.api.ChatColor.WHITE)
+                       .append("/optimisedhoppers about - ").underlined(true).color(net.md_5.bungee.api.ChatColor.GOLD)
+                       .append(" - View plugin's about\n").underlined(false).color(net.md_5.bungee.api.ChatColor.WHITE)
+                       .append("/optmisedhoppers toggle [debug/moredebug]").underlined(true).color(net.md_5.bungee.api.ChatColor.GOLD)
+                       .append(" - Shows update of debug/moredebug\n").underlined(false).color(net.md_5.bungee.api.ChatColor.WHITE)
+                       .append("/optimisedhoppers check [debug/moredebug]").underlined(true).color(net.md_5.bungee.api.ChatColor.GOLD)
+                       .append(" - Check debug/moredebug history\n").underlined(false).color(net.md_5.bungee.api.ChatColor.WHITE).create();
+
+               p.spigot().sendMessage(helpMessage);
+
+           } else if (args[0].equalsIgnoreCase("about")) {
+               aboutMessage(p);
+           } else if (args.length >= 2) {
+                // Place commands here that has more than 2 args
                 if (args[0].equalsIgnoreCase("check")) {
                     if (args[1].equalsIgnoreCase("debug")) {
                         // The current page (5 is set to be the max page)
@@ -69,7 +86,7 @@ public class PluginCommands implements TabExecutor {
                         if (isNumeric(userinput)) {
                             int pagenumber = Integer.parseInt(userinput);
 
-                            if (pagenumber <= 5) {
+                            if (pagenumber <= 5 && pagenumber > 0) {
                                 // How many stuffs will there be in 1 page
                                 int content_num = 6;
 
@@ -83,8 +100,8 @@ public class PluginCommands implements TabExecutor {
                                                 "/optimisedhoppers check debug " + (pagenumber - 1)))
                                         .event(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("Previous Page"))).create();
 
-                                // U+2800 is inside the emptyComponent. It is not simply spacebar
-                                BaseComponent[] emptyComponent = new ComponentBuilder("⠀").create();
+                                // Spacebar
+                                BaseComponent[] emptyComponent = new ComponentBuilder(" ").create();
 
                                 BaseComponent[] messageComponent = new ComponentBuilder("Logs: ")
                                         .bold(true).color(net.md_5.bungee.api.ChatColor.GOLD)
@@ -112,7 +129,7 @@ public class PluginCommands implements TabExecutor {
                         if (isNumeric(userinput)) {
                             int pagenumber = Integer.parseInt(userinput);
 
-                            if (pagenumber <= 5) {
+                            if (pagenumber <= 5 && pagenumber > 0) {
                                 // How many stuffs will there be in 1 page
                                 int content_num = 6;
 
@@ -195,6 +212,8 @@ public class PluginCommands implements TabExecutor {
             if (args.length == 1) {
                 arguments.add("check");
                 arguments.add("toggle");
+                arguments.add("help");
+                arguments.add("about");
             }
 
             // Make the tab completion only work when the args is set
