@@ -31,5 +31,4 @@ public class PluginMain extends JavaPlugin {
 		getPlugin().saveConfig();
 		getPlugin().reloadConfig();
 	}
-
 }

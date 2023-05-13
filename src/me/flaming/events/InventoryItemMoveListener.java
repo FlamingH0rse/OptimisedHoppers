@@ -17,6 +17,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import me.flaming.PluginMain;
 
+
 public class InventoryItemMoveListener implements Listener {
 	private int getInvFreeAmount(Inventory inv, ItemStack itemstack) {
 		final int[] FreeSpace = {0};
@@ -48,12 +49,15 @@ public class InventoryItemMoveListener implements Listener {
 	}
 
 	private Block getTargetHopper(Block block, ItemStack itemstack) {
-		Hopper hoppermeta = (Hopper) block.getBlockData();
-		String dir = hoppermeta.getFacing().name();
+		Hopper hopperMeta = (Hopper) block.getBlockData();
+		String dir = hopperMeta.getFacing().name();
 
 		Block target = getBlockAt(block, dir);
 
 		if (target == null || !target.getType().equals(Material.HOPPER)) return null;
+
+		Hopper targetHopperMeta = (Hopper) target.getBlockData();
+		if (!targetHopperMeta.isEnabled()) return null;
 
 		int space = getInvFreeAmount(((BlockInventoryHolder) target.getState()).getInventory(), itemstack);
 
@@ -64,13 +68,17 @@ public class InventoryItemMoveListener implements Listener {
 	}
 
 	public void executeOnTrigger(InventoryMoveItemEvent e) {
+		// Plugin Config
 		PluginMain.getPlugin().reloadConfig();
 		FileConfiguration config = PluginMain.getPlugin().getConfig();
 
+		// Hopper blocks
 		Block sourceBlock = ((BlockInventoryHolder) e.getSource().getHolder()).getBlock();
 		Block targetBlock = null;
 		Block prevBlock = sourceBlock;
 
+
+		// Getting the final target hopper
 		while (targetBlock == null) {
 			Block targetPlaceholder = getTargetHopper(prevBlock, e.getItem());
 
@@ -80,7 +88,9 @@ public class InventoryItemMoveListener implements Listener {
 				// Else, goes to next iteration
 			else prevBlock = targetPlaceholder;
 		}
-		// No item movement, added to prevent debug spamming
+
+		// If no item movement
+		// Added to prevent debug spamming
 		if (sourceBlock.equals(targetBlock)) return;
 
 
@@ -89,9 +99,26 @@ public class InventoryItemMoveListener implements Listener {
 
 		int freeSpace = getInvFreeAmount(targetInventory, e.getItem());
 
+		ItemStack originalItem = e.getItem().clone();
+
 		for (ItemStack item : sourceInventory.getContents()) {
 			if (freeSpace == 0) return;
-			if (item != null && item.isSimilar(e.getItem())) {
+
+			if (item == null) return;
+
+			boolean isStackable = false;
+
+			if (originalItem.getType().equals(item.getType())) {
+				if ((item.hasItemMeta() && item.getItemMeta().hasDisplayName()) && (originalItem.hasItemMeta() && originalItem.getItemMeta().hasDisplayName())) {
+					String item1Name = item.getItemMeta().getDisplayName();
+					String item2Name = originalItem.getItemMeta().getDisplayName();
+
+					isStackable = item1Name.equals(item2Name);
+
+				} else isStackable = true;
+			}
+
+			if (isStackable) {
 				int removeAmount = Math.min(item.getAmount(), freeSpace);
 
 				freeSpace -= removeAmount;
@@ -105,19 +132,20 @@ public class InventoryItemMoveListener implements Listener {
 
 				// Adds item to destination inventory
 				targetInventory.addItem(movingItem);
-				if (config.getBoolean("Debug"))
+				if (config.getBoolean("MoreDebug"))
 					Bukkit.broadcastMessage("Added " + removeAmount + " " + movingItem.getType() + " to target hopper");
 			}
 		}
 
-		if (config.getBoolean("MoreDebug"))
+		if (config.getBoolean("Debug"))
 			Bukkit.broadcastMessage("Source Hopper: " + sourceBlock.getX() + "," + sourceBlock.getY() + "," + sourceBlock.getZ());
-		if (config.getBoolean("MoreDebug"))
+		if (config.getBoolean("Debug"))
 			Bukkit.broadcastMessage("Target Hopper: " + targetBlock.getX() + "," + targetBlock.getY() + "," + targetBlock.getZ());
 	}
 
 	@EventHandler
 	public void onInvItemMove(InventoryMoveItemEvent e) {
+		// To be updated to a separate methods, checking for all containers
 		if (!e.getSource().getType().equals(InventoryType.HOPPER) && !(e.getSource().getHolder() instanceof BlockInventoryHolder))
 			return;
 
